@@ -1,0 +1,37 @@
+### CREDIT_SUCCESS -> 467972be-839d-474d-823e-90ef25cdd356
+POST http://localhost:8081/ms-order-service/orders
+Content-Type: application/json
+
+
+
+### DEBIT_ERROR -> 467972be-839d-474d-823e-90ef25cdd008
+POST http://localhost:8081/ms-order-service/orders
+Content-Type: application/json
+
+{
+  "payment_method_customer_id":"467972be-839d-474d-823e-90ef25cdd008",
+  "items":[
+    {
+      "product_id":"4449f3a2-ea5c-411d-87dc-ab6d52ff5bee",
+      "quantity":1
+    },
+    {
+      "product_id":"1cf53eb4-8853-49bc-8b39-a7132e1f1cc9",
+      "quantity":2
+    }
+  ]
+}
+
+###
+
+
+###
+GET http://localhost:8081/ms-order-service/orders/all?page=0&size =1
+
+
+###
+
+GET http://localhost:8081/ms-order-service/orders/467972be-839d-474d-823e-90ef25cdd354
+
+###
+DELETE http://localhost:8081/ms-order-service/orders/005456ab-0e4f-45cd-9b62-b85f7c5a7035

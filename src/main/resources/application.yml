@@ -1,0 +1,152 @@
+spring:
+  application:
+    name: @project.artifactId@
+  cloud:
+    config:
+      profile: ${CONFIG_PROFILE:local}
+  datasource:
+    url: jdbc:postgresql://localhost:5455/order_service_db?stringtype=unspecified
+    username: admin
+    password: admin123
+
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      max-lifetime: 2000000
+      maximum-pool-size: 20 #  cantidad de conexiones dentro del pool: 20 conexiones
+      auto-commit: false # el commit es manejado por las transacciones de Spring
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 30000
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+  flyway:
+    schemas: public
+    enabled: true
+    out-of-order: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    properties:
+      max-poll-interval: ${KAFKA_PROPERTIES_MAX_POLL_INTERVAL:900000}
+      request-timeout: ${KAFKA_PROPERTIES_REQUEST_TIMEOUT:300000}
+      session-timeout: ${KAFKA_PROPERTIES_SESSION_TIMEOUT:600000}
+      max-request-size: ${KAFKA_PROPERTIES_MAX_REQUEST_SIZE:10485760}
+      client-id: ${spring.application.name}-client
+
+    listener:
+      concurrency: ${LISTENER_CONCURRENCY:3}
+
+    consumer:
+      auto-offset-reset: ${CONSUMER_AUTO_OFFSET_RESET:earliest}
+      heartbeat-interval: ${CONSUMER_HEARTBEAT_INTERVAL:3000}
+      isolation-level: ${CONSUMER_ISOLATION_LEVEL:read_committed}
+      max-poll-records: ${CONSUMER_MAX_POLL_RECORDS:100}
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+    producer:
+      buffer-memory: 67108864
+      linger-ms: 10
+      batch-size: 65536
+      acks: all
+      properties:
+        enable:
+          idempotence: true
+        max:
+          in:
+            flight:
+              requests.per.connection: 5
+
+  task:
+    execution:
+      pool:
+        core-size: ${TASK_CORE_SIZE:20}
+        max-size: ${TASK_MAX_SIZE:100}
+        queue-capacity: ${TASK_QUEUE_CAPACITY:100}
+      thread-name-prefix: ${TASK_THREAD_PREFIX:Data-Async-Thread-}
+
+# Swagger=/api-docs=/swagger-docs
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-docs
+
+swagger:
+  info:
+    title: Ms orders service
+    version: @project.version@
+    description: Api architecture hexagonal order server
+  server:
+    main:
+      url: ${server.servlet.context-path}
+      description: API Server
+
+#logging:
+#  level:
+#    org.apache.kafka.clients.producer.ProducerConfig: ${KAFKA_LOG_LEVEL_PRODUCER_CONFIG:ERROR}
+#    org.apache.kafka.clients.consumer.ConsumerConfig: ${KAFKA_LOG_LEVEL_CONSUMER_CONFIG:ERROR}
+
+aws:
+  s3:
+    region: ${AWS_S3_REGION:us-east-1}
+    global-credentials:
+      access-key: ${AWS_S3_GLOBAL_CREDENTIALS_ACCESS_KEY:AKIAV}
+      secret-key: ${AWS_S3_GLOBAL_CREDENTIALS_SECRET_KEY:+l/tK3y4q}
+    client-configuration:
+      max-connections: ${AWS_S3_CLIENT_CONFIGURATION_MAX_CONNECTIONS:1000}
+      connection-timeout: ${AWS_S3_CLIENT_CONFIGURATION_CONNECTION_TIMEOUT:60000} # 60 segundos
+      socket-timeout: ${AWS_S3_CLIENT_CONFIGURATION_SOCKET_TIMEOUT:60000} # 60 segundos
+app:
+  config:
+    enable-global-exception-handler: ${ENABLE_GLOBAL_EXCEPTION_HANDLER:true}
+
+    kafka:
+      consumers:
+        group-id: ${spring.application.name}-group
+        topic-payment-notification: test.topic.payment.notification #TODO eliminar
+        retries:
+          back-off-interval: ${RETRIES_BACK_OFF_INTERVAL:300000} # 5 minutos
+          max-attempts: ${RETRIES_MAX_ATTEMPTS:10}
+      producers:
+        topic-payment-order: test.topic.payment.order
+
+      security:
+        sasl-mechanism: ${SECURITY_SASL_MECHANISM:PLAIN}
+        user: ${SECURITY_USER:admin}
+        password: ${SECURITY_PASSWORD:admin}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: b3
+    baggage:
+      remote-fields:
+        - x-trace
+      correlation:
+        fields:
+          - x-trace
+  metrics:
+    distribution:
+      percentiles-histogram:
+        greeting: true
+        http:
+          server:
+            requests: true
+cors:
+  allowed:
+    origins:
+      - '*'
+
+server:
+  servlet:
+    context-path: /ms-order-service
+  port: 8081
